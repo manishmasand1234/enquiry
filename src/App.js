@@ -48,7 +48,6 @@ function App() {
         resetForm();
       }
     } else {
-      // Updating existing entry
       let updatedUserData = [...userData];
       updatedUserData[formData.index] = currentUserData;
       setUserData(updatedUserData);
