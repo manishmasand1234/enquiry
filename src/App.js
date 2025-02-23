@@ -3,9 +3,10 @@ import { Col, Container, Row, Form, Table } from 'react-bootstrap';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import { useState } from 'react';
 import { toast, ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
+import { FaTrash, FaEdit, FaMoon, FaSun } from 'react-icons/fa';
 
 function App() {
-
   let [formData, setFormData] = useState({
     uname: '',
     uemail: '',
@@ -15,6 +16,12 @@ function App() {
   });
 
   let [userData, setUserData] = useState([]);
+  let [darkMode, setDarkMode] = useState(false);
+
+  let toggleDarkMode = () => {
+    setDarkMode(!darkMode);
+    document.body.classList.toggle('dark-mode');
+  };
 
   let getValue = (event) => {
     let oldData = { ...formData };
@@ -26,16 +33,10 @@ function App() {
 
   let handleSubmit = (event) => {
     event.preventDefault();
-
-    let currentUserData = {
-      uname: formData.uname,
-      uphone: formData.uphone,
-      uemail: formData.uemail,
-      umessage: formData.umessage,
-    };
+    let currentUserData = { ...formData };
+    delete currentUserData.index;
 
     if (formData.index === '') {
-      // Adding new entry
       let checkFilter = userData.filter(
         (v) => v.uemail === formData.uemail || v.uphone === formData.uphone
       );
@@ -43,12 +44,11 @@ function App() {
       if (checkFilter.length === 1) {
         toast.warn('Enter a unique email and phone number');
       } else {
-        let oldUserData = [...userData, currentUserData];
-        setUserData(oldUserData);
+        setUserData([...userData, currentUserData]);
         resetForm();
+        toast.success('Data saved successfully');
       }
     } else {
-      // Updating existing entry
       let updatedUserData = [...userData];
       updatedUserData[formData.index] = currentUserData;
       setUserData(updatedUserData);
@@ -58,13 +58,13 @@ function App() {
   };
 
   let deleteRow = (indexNumber) => {
-    let filterDataDelete = userData.filter((v, i) => i !== indexNumber);
+    let filterDataDelete = userData.filter((_, i) => i !== indexNumber);
     setUserData(filterDataDelete);
     toast.error('Data deleted');
   };
 
   let editRow = (indexNumber) => {
-    toast.warn('You want to update the row with index ' + indexNumber);
+    toast.warn('You want to update the row with index ' + (indexNumber+1));
     let editData = { ...userData[indexNumber], index: indexNumber };
     setFormData(editData);
   };
@@ -80,7 +80,7 @@ function App() {
   };
 
   return (
-    <Container fluid>
+    <Container fluid className={darkMode ? 'bg-dark text-light' : 'bg-light text-dark'}>
       <ToastContainer />
       <Container>
         <Row>
@@ -89,64 +89,38 @@ function App() {
           </Col>
         </Row>
         <Row>
-          <Col lg={5}>
-            
-            <Form onSubmit={handleSubmit}>
-              <div className="pb-3">
-                <label className="form-label">Name</label>
-                <input
-                  type="text"
-                  onChange={getValue}
-                  value={formData.uname}
-                  name="uname"
-                  className="form-control"
-                />
-              </div>
+          <Col lg={5} sm={12} className="mb-3">
+            <Form onSubmit={handleSubmit} className="p-3 border rounded shadow">
+              <Form.Group className="mb-3">
+                <Form.Label>Name</Form.Label>
+                <Form.Control type="text" onChange={getValue} value={formData.uname} name="uname" />
+              </Form.Group>
 
-              <div className="pb-3">
-                <label className="form-label">Email</label>
-                <input
-                  type="text"
-                  onChange={getValue}
-                  value={formData.uemail}
-                  name="uemail"
-                  className="form-control"
-                />
-              </div>
+              <Form.Group className="mb-3">
+                <Form.Label>Email</Form.Label>
+                <Form.Control type="email" onChange={getValue} value={formData.uemail} name="uemail" />
+              </Form.Group>
 
-              <div className="pb-3">
-                <label className="form-label">Phone</label>
-                <input
-                  type="number"
-                  onChange={getValue}
-                  value={formData.uphone}
-                  name="uphone"
-                  className="form-control"
-                />
-              </div>
+              <Form.Group className="mb-3">
+                <Form.Label>Phone</Form.Label>
+                <Form.Control type="number" onChange={getValue} value={formData.uphone} name="uphone" />
+              </Form.Group>
 
-              <div className="mb-3">
-                <label className="form-label">Message</label>
-                <textarea
-                  type="text"
-                  onChange={getValue}
-                  value={formData.umessage}
-                  name="umessage"
-                  className="form-control"
-                  rows={3}
-                />
-              </div>
+              <Form.Group className="mb-3">
+                <Form.Label>Message</Form.Label>
+                <Form.Control as="textarea" rows={3} onChange={getValue} value={formData.umessage} name="umessage" />
+              </Form.Group>
 
-              <button className="btn btn-primary">
+              <button className="btn btn-primary w-100">
                 {formData.index !== '' ? 'Update' : 'Save'}
               </button>
             </Form>
           </Col>
-          <Col lg={7}>
-            <Table striped bordered hover>
+          <Col lg={7} sm={12}>
+            <Table responsive striped bordered hover className="text-center">
               <thead>
                 <tr>
-                  <th>S.No</th>
+                  <th>#</th>
                   <th>Name</th>
                   <th>Email</th>
                   <th>Phone</th>
@@ -155,35 +129,27 @@ function App() {
                 </tr>
               </thead>
               <tbody>
-                {userData.length >= 1 ? (
-                  userData.map((obj, index) => {
-                    return (
-                      <tr key={index}>
-                        <td>{index + 1}</td>
-                        <td>{obj.uname}</td>
-                        <td>{obj.uemail}</td>
-                        <td>{obj.uphone}</td>
-                        <td>{obj.umessage}</td>
-                        <td>
-                          <button
-                            className="btn btn-danger me-2"
-                            onClick={() => deleteRow(index)}
-                          >
-                            Delete
-                          </button>
-                          <button
-                            className="btn btn-warning"
-                            onClick={() => editRow(index)}
-                          >
-                            Update
-                          </button>
-                        </td>
-                      </tr>
-                    );
-                  })
+                {userData.length > 0 ? (
+                  userData.map((obj, index) => (
+                    <tr key={index}>
+                      <td>{index + 1}</td>
+                      <td>{obj.uname}</td>
+                      <td>{obj.uemail}</td>
+                      <td>{obj.uphone}</td>
+                      <td>{obj.umessage}</td>
+                      <td>
+                        <button className="btn btn-danger me-2" onClick={() => deleteRow(index)}>
+                          <FaTrash /> Delete
+                        </button>
+                        <button className="btn btn-warning text-white" onClick={() => editRow(index)}>
+                          <FaEdit /> Update
+                        </button>
+                      </td>
+                    </tr>
+                  ))
                 ) : (
                   <tr>
-                    <td colSpan={6} className="text-center">
+                    <td colSpan={6} className="text-center text-muted">
                       No Data Found
                     </td>
                   </tr>
@@ -193,6 +159,11 @@ function App() {
           </Col>
         </Row>
       </Container>
+      <button 
+        className="btn btn-secondary position-fixed bottom-0 end-0 m-3 rounded-circle p-3" 
+        onClick={toggleDarkMode}>
+        {darkMode ? <FaSun /> : <FaMoon />}
+      </button>
     </Container>
   );
 }
